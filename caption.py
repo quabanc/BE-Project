@@ -12,7 +12,6 @@ from PIL import Image
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
 def caption_image_beam_search(encoder, decoder, image_path, word_map, beam_size=3):
     """
     Reads an image and captions it with beam search.
@@ -162,6 +161,7 @@ def visualize_att(image_path, seq, alphas, rev_word_map, smooth=True):
     image = Image.open(image_path)
     image = image.resize([14 * 24, 14 * 24], Image.LANCZOS)
 
+    print(seq)
     words = [rev_word_map[ind] for ind in seq]
 
     for t in range(len(words)):
