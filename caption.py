@@ -224,7 +224,7 @@ def caption_generator(img):
 	smooth = False
 
 	# Load model
-	checkpoint = torch.load(model)
+	checkpoint = torch.load(model, map_location=torch.device('cpu'))
 	decoder = checkpoint['decoder']
 	decoder = decoder.to(device)
 	decoder.eval()

@@ -23,7 +23,6 @@ def create_caption():
     image.save(destination)
 
 
-    # file = request.form['file']
     return caption_generator(destination)
 
 app.run()
