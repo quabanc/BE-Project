@@ -129,4 +129,6 @@ dmypy.json
 .pyre/
 
 # tar files
-BEST_checkpoint_coco_5_cap_per_img_5_min_word_freq.pth.tar
+model.pth.tar
+.vscode/
+

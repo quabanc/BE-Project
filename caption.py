@@ -160,50 +160,71 @@ def visualize_att(image_path, seq, alphas, rev_word_map, visual_words, smooth=Tr
 	"""
 	image = Image.open(image_path)
 	image = image.resize([14 * 24, 14 * 24], Image.LANCZOS)
-
+	
+	print(seq)
 	words = [rev_word_map[ind] for ind in seq]
+	print(words)
 	caption = ''
 
-	for t in range(len(words)):
+	result = []
+
+	t = 1
+	while t < len(words)-1:
 		if t > 50:
 			break
-		plt.subplot(np.ceil(len(words) / 5.), 5, t + 1)
+		# plt.subplot(np.ceil(len(words) / 5.), 5, t + 1)
 		
-		if words[t] in visual_words:
-			words[t] = '[' + words[t] + ']'
+		if (words[t] + ' ' + words[t+1]) in visual_words:
+			result.append('[' + words[t] + ' ' + words[t+1] + ']')
+			t += 1
 
-		plt.text(0, 1, '%s' % (words[t]), color='black', backgroundcolor='white', fontsize=10)
-		plt.imshow(image)
-		current_alpha = alphas[t, :]
-		if smooth:
-			alpha = skimage.transform.pyramid_expand(current_alpha.numpy(), upscale=24, sigma=8)
-		else:
-			alpha = skimage.transform.resize(current_alpha.numpy(), [14 * 24, 14 * 24])
-		if t == 0:
-			plt.imshow(alpha, alpha=0)
-		else:
-			plt.imshow(alpha, alpha=0.8)
-		plt.set_cmap(cm.Greys_r)
-		plt.axis('off')
+		elif words[t] in visual_words:
+			result.append('[' + words[t] + ']')
 		
-		caption += words[t] + ' '
+		else:
+			result.append(words[t])
+		
+		t += 1
 
+		# plt.text(0, 1, '%s' % (words[t]), color='black', backgroundcolor='white', fontsize=10)
+		# plt.imshow(image)
+		# current_alpha = alphas[t, :]
+		# if smooth:
+		# 	alpha = skimage.transform.pyramid_expand(current_alpha.numpy(), upscale=24, sigma=8)
+		# else:
+		# 	alpha = skimage.transform.resize(current_alpha.numpy(), [14 * 24, 14 * 24])
+		# if t == 0:
+		# 	plt.imshow(alpha, alpha=0)
+		# else:
+		# 	plt.imshow(alpha, alpha=0.8)
+		# plt.set_cmap(cm.Greys_r)
+		# plt.axis('off')
+
+	caption = ' '.join(result)
 	print(caption)
-	plt.show()
 
-if __name__ == '__main__':
-	parser = argparse.ArgumentParser(description='Show, Attend, and Tell - Tutorial - Generate Caption')
+	return caption
+	# plt.show()
 
-	parser.add_argument('--img', '-i', help='path to image')
-	parser.add_argument('--model', '-m', help='path to model')
-	parser.add_argument('--word_map', '-wm', help='path to word map JSON')
-	parser.add_argument('--beam_size', '-b', default=5, type=int, help='beam size for beam search')
-	parser.add_argument('--dont_smooth', dest='smooth', action='store_false', help='do not smooth alpha overlay')
+def caption_generator(img):
+	# parser = argparse.ArgumentParser(description='Show, Attend, and Tell - Tutorial - Generate Caption')
 
-	args = parser.parse_args()
+	# parser.add_argument('--img', '-i', help='path to image')
+	# parser.add_argument('--model', '-m', help='path to model')
+	# parser.add_argument('--word_map', '-wm', help='path to word map JSON')
+	# parser.add_argument('--beam_size', '-b', default=5, type=int, help='beam size for beam search')
+	# parser.add_argument('--dont_smooth', dest='smooth', action='store_false', help='do not smooth alpha overlay')
+
+	# args = parser.parse_args()
+
+	# Parameters
+	model = 'model.pth.tar'
+	word_map = 'new_wordmap.json'
+	beam_size = 5
+	smooth = False
 
 	# Load model
-	checkpoint = torch.load(args.model)
+	checkpoint = torch.load(model)
 	decoder = checkpoint['decoder']
 	decoder = decoder.to(device)
 	decoder.eval()
@@ -212,13 +233,13 @@ if __name__ == '__main__':
 	encoder.eval()
 
 	# Load word map (word2ix)
-	with open(args.word_map, 'r') as j:
+	with open(word_map, 'r') as j:
 		word_map = json.load(j)
 	rev_word_map = {v: k for k, v in word_map['wtoi'].items()}  # ix2word
 	visual_words = word_map['wtod']
 	# Encode, decode with attention and beam search
-	seq, alphas = caption_image_beam_search(encoder, decoder, args.img, word_map['wtoi'], args.beam_size)
+	seq, alphas = caption_image_beam_search(encoder, decoder, img, word_map['wtoi'], beam_size)
 	alphas = torch.FloatTensor(alphas)
 
 	# Visualize caption and attention of best sequence
-	visualize_att(args.img, seq, alphas, rev_word_map, visual_words, args.smooth)
+	return visualize_att(img, seq, alphas, rev_word_map, visual_words, smooth)
