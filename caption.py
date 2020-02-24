@@ -203,7 +203,7 @@ def visualize_att(image_path, seq, alphas, rev_word_map, visual_words, smooth=Tr
 	caption = ' '.join(result)
 	print(caption)
 
-	return caption
+	return {"caption": caption}
 	# plt.show()
 
 def caption_generator(img):
