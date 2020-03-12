@@ -9,8 +9,15 @@ import skimage.transform
 import argparse
 from scipy.misc import imread, imresize
 from PIL import Image
+from random import shuffle
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+# Code for GloVe option generation modules
+import gensim
+model = gensim.models.KeyedVectors.load_word2vec_format('glove_models/glove.6B.50d.w2vformat.txt')
+
 
 def caption_image_beam_search(encoder, decoder, image_path, word_map, beam_size=3):
 	"""
@@ -161,26 +168,36 @@ def visualize_att(image_path, seq, alphas, rev_word_map, visual_words, smooth=Tr
 	image = Image.open(image_path)
 	image = image.resize([14 * 24, 14 * 24], Image.LANCZOS)
 	
-	print(seq)
+	# print(seq)
 	words = [rev_word_map[ind] for ind in seq]
-	print(words)
+	# print(words)
 	caption = ''
 
 	result = []
 
 	t = 1
+	options = [[], [], [], []]
 	while t < len(words)-1:
 		if t > 50:
 			break
 		# plt.subplot(np.ceil(len(words) / 5.), 5, t + 1)
-		
 		if (words[t] + ' ' + words[t+1]) in visual_words:
-			result.append('[' + words[t] + ' ' + words[t+1] + ']')
+			result.append("______")
+			similar_options_1 = model.most_similar(words[t], topn=3)
+			similar_options_2 = model.most_similar(words[t+1], topn=3)
+			options[0].append(words[t] + ' ' + words[t+1])
+			options[1].append(similar_options_1[0][0] + ' ' + similar_options_2[0][0])
+			options[2].append(similar_options_1[1][0] + ' ' + similar_options_2[1][0])
+			options[3].append(similar_options_1[2][0] + ' ' + similar_options_2[2][0])
 			t += 1
 
 		elif words[t] in visual_words:
-			result.append('[' + words[t] + ']')
-		
+			result.append("______")
+			similar_options = model.most_similar(words[t], topn=3)
+			options[0].append(words[t])
+			options[1].append(similar_options[0][0])
+			options[2].append(similar_options[1][0])
+			options[3].append(similar_options[2][0])
 		else:
 			result.append(words[t])
 		
@@ -201,9 +218,15 @@ def visualize_att(image_path, seq, alphas, rev_word_map, visual_words, smooth=Tr
 		# plt.axis('off')
 
 	caption = ' '.join(result)
-	print(caption)
-
-	return {"caption": caption}
+	for i in range(len(options)):
+		options[i] = [", ".join(options[i])]
+		if i == 0:
+			options[i].append({"correct": True})
+		else:
+			options[i].append({"correct": False})
+	# print(caption)
+	shuffle(options)
+	return {"caption": caption, "options": options}
 	# plt.show()
 
 def caption_generator(img):

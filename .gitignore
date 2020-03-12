@@ -132,3 +132,8 @@ dmypy.json
 model.pth.tar
 .vscode/
 
+# own
+glove_models/
+glove-python/
+media/
+**.DS_Store
