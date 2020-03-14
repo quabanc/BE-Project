@@ -9,9 +9,13 @@ virtualenv >= 16.0.0
 
 #### Fork this repo and run these commands after cloning the project and go inside the directory:
 ```
+wget http://nlp.stanford.edu/data/wordvecs/glove.6B.zip
+mkdir glove_models && mv ./glove.6B.zip ./glove_models
+unzip ./glove_models/glove.6B.zip
 virtualenv venv
 source venv/bin/activate
 pip3 install -r requirements.txt
+python3 -m gensim.scripts.glove2word2vec --input  ./glove_models/glove.6B.50d.txt --output ./glove_models/glove.6B.50d.w2vformat.txt
 python3 app.py
 ```
 
