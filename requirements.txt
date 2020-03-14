@@ -13,7 +13,7 @@ docutils==0.15.2
 Flask==1.1.1
 floyd-cli==0.11.17
 gensim==3.8.1
--e git+https://github.com/maciejkula/glove-python.git@749494290fdfd24379dcc2e244c583ee61808634#egg=glove_python
+glove_python
 idna==2.8
 imageio==2.6.1
 itsdangerous==1.1.0
